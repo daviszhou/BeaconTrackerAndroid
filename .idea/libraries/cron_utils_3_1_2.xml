@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="cron-utils-3.1.2">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.cronutils/cron-utils/3.1.2/bac45f4227417044fa16bb64c606fe2f98c22e8/cron-utils-3.1.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.cronutils/cron-utils/3.1.2/cb658e55bf8fde90d65706478666225ce3816496/cron-utils-3.1.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

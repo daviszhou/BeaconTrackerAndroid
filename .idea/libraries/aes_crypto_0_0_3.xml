@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="aes-crypto-0.0.3">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.scottyab/aes-crypto/0.0.3/jars/classes.jar!/" />
+      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.scottyab/aes-crypto/0.0.3/res" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.scottyab/aes-crypto/0.0.3/b0b207ddd8d169db73fa96b41ec85a70497b7ce3/aes-crypto-0.0.3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

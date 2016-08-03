@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="skin-1.0.0.rc3">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/org.researchstack/skin/1.0.0.rc3/res" />
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/org.researchstack/skin/1.0.0.rc3/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.researchstack/skin/1.0.0.rc3/e652ac190c290c06f79588fb3b2fbe83441fe465/skin-1.0.0.rc3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
