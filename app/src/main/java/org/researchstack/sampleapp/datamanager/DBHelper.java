@@ -1,4 +1,4 @@
-package org.researchstack.sampleapp.databasemanager;
+package org.researchstack.sampleapp.datamanager;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -30,7 +30,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         // SQL commands to create table
         String CREATE_BEACON_TABLE = "CREATE TABLE beaconstatus ( " +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
                 "uid TEXT, " +
                 "beaconinrange INTEGER, " +
                 "datetimestamp INTEGER, " +
@@ -96,7 +96,7 @@ public class DBHelper extends SQLiteOpenHelper {
         beaconStatus.setIntBeaconInRange(cursor.getString(2));
         beaconStatus.setDateTimeStamp(cursor.getLong(3));
         // Log
-        Log.d("DB: getBeaconStatus("+datetime+")", beaconStatus.toString());
+        Log.d("DB: getBeaconStatusDT("+datetime+")", beaconStatus.toString());
         cursor.close();
 
         return beaconStatus;
@@ -108,7 +108,7 @@ public class DBHelper extends SQLiteOpenHelper {
         // Build query
         Cursor cursor = db.query(TABLE_BEACONSTATUS, //table
                 COLUMNS, //column names
-                " id = ?", //seletions
+                " id = ? ", //selections
                 new String[] { String.valueOf(id) }, //selections
                 null, //group by
                 null, //having
@@ -126,6 +126,42 @@ public class DBHelper extends SQLiteOpenHelper {
         beaconStatus.setDateTimeStamp(cursor.getLong(3));
         // Log
         Log.d("DB: getBeaconStatus("+id+")", beaconStatus.toString());
+        cursor.close();
+
+        return beaconStatus;
+    }
+
+    public BeaconStatus getBeaconStatusReverseCount(int reversecount) {
+        // Get reference to database
+        SQLiteDatabase db = this.getReadableDatabase();
+        // Build query
+        //String query = "SELECT * FROM " + TABLE_BEACONSTATUS + " ORDER BY id DESC LIMIT 1";
+        //Cursor cursor = db.rawQuery(query, null);
+
+        Cursor cursor = db.query(TABLE_BEACONSTATUS, //table
+                COLUMNS, //column names
+                null, //selections
+                null, //selections
+                null, //group by
+                null, //having
+                "id DESC", //order by
+                String.valueOf(reversecount)); //limit
+        if (cursor != null)
+            cursor.moveToFirst();
+        reversecount -= 1; //TODO streamline
+        while (reversecount > 0) {
+            cursor.moveToNext();
+            reversecount -= 1;
+        }
+
+        // Build object
+        BeaconStatus beaconStatus = new BeaconStatus();
+        beaconStatus.setId(cursor.getInt(0));
+        beaconStatus.setUID(cursor.getString(1));
+        beaconStatus.setIntBeaconInRange(cursor.getString(2));
+        beaconStatus.setDateTimeStamp(cursor.getLong(3));
+        // Log
+        Log.d("DB: getBeaconStatus(" + String.valueOf(cursor.getInt(0)) + ")", beaconStatus.toString());
         cursor.close();
 
         return beaconStatus;

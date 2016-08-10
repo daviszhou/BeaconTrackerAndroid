@@ -1,4 +1,4 @@
-package org.researchstack.sampleapp.dashboard;
+package org.researchstack.sampleapp.datamanager;
 
 /**
  * Created by davis on 7/21/16.
@@ -20,13 +20,5 @@ public class TwoValueDataHolder {
 
     public Object getSecond() {
         return this.mSecond;
-    }
-
-    public void setFirst(Object first) {
-        this.mFirst = first;
-    }
-
-    public void setSecond(Object second) {
-        this.mSecond = second;;
     }
 }

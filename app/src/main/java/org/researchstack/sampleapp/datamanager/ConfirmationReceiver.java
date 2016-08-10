@@ -1,4 +1,4 @@
-package org.researchstack.sampleapp.databasemanager;
+package org.researchstack.sampleapp.datamanager;
 
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;

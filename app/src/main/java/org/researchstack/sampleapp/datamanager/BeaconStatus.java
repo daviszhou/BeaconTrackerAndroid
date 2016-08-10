@@ -1,4 +1,4 @@
-package org.researchstack.sampleapp.databasemanager;
+package org.researchstack.sampleapp.datamanager;
 
 /**
  * Created by davis on 7/8/16.
