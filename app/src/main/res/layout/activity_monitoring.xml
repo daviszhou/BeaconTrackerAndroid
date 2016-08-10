@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/monitoringFragment">
+    <!--
+    android:paddingBottom="16dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="16dp"
+    android:orientation="vertical"
+    android:background="#ECECEA"
+    -->
+
+    <TextView
+        android:id="@+id/monitoringText"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_below="@+id/textView1"
+        android:ems="12"
+        android:gravity="bottom"
+        android:layout_marginTop="10dp"
+        android:inputType="textMultiLine"
+        android:fontFamily="monospace"
+        android:textSize="18sp"
+        android:scrollbars="vertical"
+        android:freezesText="true" >
+        <requestFocus />
+    </TextView>
+
+    <Switch
+        android:id="@+id/mySwitch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Toggle Scan Frequency"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp">
+
+        <Button
+            android:id="@+id/ButtonDashboard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onDashboardClicked"
+            android:text="Dashboard"
+            android:layout_margin="2dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            />
+
+        <Button
+            android:id="@+id/ButtonDisableBluetooth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onDisableBluetoothClicked"
+            android:text="Stop Scanning"
+            android:layout_margin="2dp"
+            android:paddingRight="10dp"
+            />
+    </LinearLayout>
+
+    <org.researchstack.backbone.ui.graph.EmptyView
+        android:id="@+id/activity_monitoring_empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        tools:visibility="gone"/>
+
+</FrameLayout>
