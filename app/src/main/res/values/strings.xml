@@ -15,4 +15,8 @@
 
     <!-- Main Activity Toast Hints -->
     <string name="rss_beacons">Beacons</string>
+    <string name="rss_permission_mandatory_notification_desc">This app needs your permission to show
+        notifications that confirm that beacon detections are accurate and ask follow-up questions.
+    </string>
+
 </resources>

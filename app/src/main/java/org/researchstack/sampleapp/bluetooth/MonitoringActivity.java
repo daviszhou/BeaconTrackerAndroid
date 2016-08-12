@@ -1,33 +1,22 @@
 package org.researchstack.sampleapp.bluetooth;
 
-import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.app.Fragment;
 import android.support.v4.app.NotificationCompat;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
-import android.widget.TextView;
-
-import org.researchstack.sampleapp.R;
-import org.researchstack.sampleapp.dashboard.DashboardActivity;
-import org.researchstack.sampleapp.databasemanager.BeaconStatus;
-import org.researchstack.sampleapp.databasemanager.ConfirmationReceiver;
-import org.researchstack.sampleapp.databasemanager.DBHelper;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -43,49 +32,41 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Random;
 
+import org.researchstack.sampleapp.R;
+import org.researchstack.sampleapp.SampleApplication;
+import  org.researchstack.sampleapp.datamanager.BeaconStatus;
+import  org.researchstack.sampleapp.datamanager.ConfirmationReceiver;
+import  org.researchstack.sampleapp.datamanager.DBHelper;
+
 /**
  *
  * @author dyoung
  * @author Matt Tyler
  */
-//TODO Add check for beacon out of range status
+//TODO move interface/display functions to fragment object
 
 public class MonitoringActivity extends Activity implements BeaconConsumer {
     protected static final String TAG = "MonitoringActivity";
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
+    private static final long MINIMUM_EPISODE_DURATION = 5L*1000L; //Beacon episode needs to be 5 seconds to be registered
     private BeaconManager mBeaconManager = BeaconManager.getInstanceForApplication(this);
     private DBHelper mDBHelper = new DBHelper(this);
     private HashMap<String, Boolean> mBeaconInRange = new HashMap<String, Boolean>();
+    private int notificationId = 0;
+    private boolean scanFrequencyForBeaconIsPresent = false;
+    private Fragment mMonitoringFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "MonitoringActivity onCreate");
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_monitoring);
+        //setContentView(R.layout.activity_monitoring);
         verifyBluetooth();
-        logToDisplay("Application just launched");
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Android M Permission check
-            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("This app needs location access");
-                builder.setMessage("Please grant location access so this app can detect beacons in the background.");
-                builder.setPositiveButton(android.R.string.ok, null);
-                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+        mMonitoringFragment = getFragmentManager().findFragmentById(R.id.monitoringFragment);
+        //mMonitoringFragment.logToDisplay("Application just launched");
 
-                    @TargetApi(23)
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                                PERMISSION_REQUEST_COARSE_LOCATION);
-                    }
-
-                });
-                builder.show();
-            }
-        }
         //Initiate Switch
         Switch mySwitch = (Switch) findViewById(R.id.mySwitch); //#set variable mySwitch to interface switch
         mySwitch.setChecked(true); //#set switch to start with "ON"
@@ -101,9 +82,10 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
                     } catch (RemoteException e) {
                         //create function to alert user
                         Log.d(TAG, "Error changing scan frequency");
-                        logToDisplay("Error changing scan frequency");
+                        //logToDisplay("Error changing scan frequency");
                     }
-                    logToDisplay("Set to frequent scanning");
+                    //logToDisplay("Set to frequent scanning");
+                    Log.d(TAG, "Set to frequent scanning");
 
                 } else {
                     mBeaconManager.setForegroundScanPeriod(5L * 1100L); //scan for 5 seconds
@@ -113,12 +95,12 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
                     } catch (RemoteException e) {
                         //create function to alert user
                         Log.d(TAG, "Error changing scan frequency");
-                        logToDisplay("Error changing scan frequency");
+                        //logToDisplay("Error changing scan frequency");
                     }
 
-                    logToDisplay("Set to infrequent scanning");
+                    //logToDisplay("Set to infrequent scanning");
+                    Log.d(TAG, "Set to frequent scanning");
                 }
-
             }
         });
 
@@ -126,37 +108,12 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
         mBeaconManager.bind(this);
 
         //TEST add beacon statuses with random datetime
-        //Remove laterqq
-        for (int i=0;i<10;i++) {
-            BeaconStatus status = generateRandomBeaconStatus();
-            mDBHelper.addBeaconStatus(status);
-        }
+        //Remove later
+        //for (int i=0;i<10;i++) {
+        //    BeaconStatus status = generateRandomBeaconStatus();
+        //    mDBHelper.addBeaconStatus(status);
+        //}
 
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_COARSE_LOCATION: {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d(TAG, "coarse location permission granted");
-                } else {
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle("Functionality limited");
-                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons when in the background.");
-                    builder.setPositiveButton(android.R.string.ok, null);
-                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-                        }
-
-                    });
-                    builder.show();
-                }
-                return;
-            }
-        }
     }
 
     @Override
@@ -172,14 +129,14 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
     @Override
     public void onResume() {
         super.onResume();
-        ((BeaconTrackerApplication) this.getApplicationContext()).setMonitoringActivity(this);
+        ((SampleApplication) this.getApplicationContext()).setMonitoringActivity(this);
         if (mBeaconManager.isBound(this)) mBeaconManager.setBackgroundMode(false);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        ((BeaconTrackerApplication) this.getApplicationContext()).setMonitoringActivity(null);
+        ((SampleApplication) this.getApplicationContext()).setMonitoringActivity(null);
         if (mBeaconManager.isBound(this)) mBeaconManager.setBackgroundMode(true);
     }
 
@@ -199,6 +156,7 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
         }
     }
 
+    @TargetApi(17)
     private void verifyBluetooth() {
         try {
             if (!BeaconManager.getInstanceForApplication(this).checkAvailability()) { //#check that there is instance of Beacon Manager
@@ -225,18 +183,11 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
         }
     }
 
-    public void logToDisplay(final String line) {
-        runOnUiThread(new Runnable() {
-            public void run() {
-                TextView textView = (TextView)MonitoringActivity.this
-                        .findViewById(R.id.monitoringText);
-                if (textView.getMovementMethod() == null) textView.setMovementMethod(new ScrollingMovementMethod()); //allow scrolling of text window
-                textView.append(line+"\n\n");
-            }
-        });
-    }
+    //TODO move this
 
-	public void onDashboardClicked(View view) {
+
+    /*
+    public void onDashboardClicked(View view) {
         if (!mDBHelper.checkIfEmpty()) {
             Intent intent = new Intent(this, DashboardActivity.class);
             this.startActivity(intent);
@@ -244,6 +195,7 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
             logToDisplay("No beacon detections stored. Cannot initialize dashboard.");
         }
     }
+    */
 
     //Ranging Functions
     @Override
@@ -254,44 +206,71 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
 
     @Override
     public void onBeaconServiceConnect() {
+        Log.d(TAG, "Scanning is set to highest frequency: " + String.valueOf(scanFrequencyForBeaconIsPresent));
+        if (!scanFrequencyForBeaconIsPresent) {
+            mBeaconManager.setBackgroundScanPeriod(1100L); //scan for 1 seconds
+            mBeaconManager.setBackgroundBetweenScanPeriod(0L); //no rest between scans
+            try {
+                mBeaconManager.updateScanPeriods();
+            } catch (RemoteException e) {
+                //create function to alert user
+                Log.d(TAG, "Error changing scan frequency");
+            }
+            scanFrequencyForBeaconIsPresent = true;
+        }
+
         mBeaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-            if (beacons.size() > 0) {
-                int i = 0;
-                for (Beacon b : beacons) {
-                    i += 1;
-                    String uid = b.getId1().toString(); //look for alternatives to getServiceUuid()
+                if (beacons.size() > 0) {
+                    int i = 0;
+                    for (Beacon b : beacons) {
+                        i += 1;
+                        String uid = b.getId1().toString();
 
-                    if (i > mBeaconInRange.size()) { //new beacon is found
-                        mBeaconInRange.put(uid, false); //put a new key-value pair in the hashmap
-                    }
+                        if (i > mBeaconInRange.size()) { //new beacon is found
+                            mBeaconInRange.put(uid, false); //put a new key-value pair in the hashmap
+                        }
 
-                    boolean rangeStatusChanged = false;
-                    Date time = Calendar.getInstance().getTime();
-                    logToDisplay("At " + time + " the beacon " + b.getId1().toString() + " is about " + b.getDistance() + " meters away.");
+                        //boolean rangeStatusChanged = false;
+                        Date time = Calendar.getInstance().getTime();
+                        //logToDisplay("At " + time + " the beacon " + b.getId1().toString() + " is about " + b.getDistance() + " meters away.");
 
                     /*
                     String string = new String();
                     Log.d(TAG, "In Range is " + string.valueOf(mBeaconInRange.get(uid) ) );
                     */
+                        long dateTime = System.currentTimeMillis();
 
-                    if (b.getDistance() < 1.0 && isBeaconInRange(uid) == false) { //if phone is within half meters of beacon
-                        mBeaconInRange.put(uid, true);
-                        rangeStatusChanged = true;
-                    } else if (b.getDistance() > 1.0 && isBeaconInRange(uid) == true) {
-                        mBeaconInRange.put(uid, false);
-                        rangeStatusChanged = true;
-                    }
+                        if (b.getDistance() < 1.0 && isBeaconInRange(uid) == false) { //if phone is within half meters of beacon
+                            mBeaconInRange.put(uid, true);
+                            BeaconStatus beaconStatus = new BeaconStatus(uid, mBeaconInRange.get(uid), dateTime, false); //Initially set userConfirmed to false
+                            mDBHelper.addBeaconStatus(beaconStatus);
+                            //rangeStatusChanged = true;
 
-                    if (rangeStatusChanged == true) { //only store data if the range status has changed
-                        Long dateTime = System.currentTimeMillis();
-                        BeaconStatus beaconStatus = new BeaconStatus(uid, mBeaconInRange.get(uid), dateTime, false); //Initially set userConfirmed to false
-                        sendNotification(String.valueOf(dateTime)); //TODO get notification user response and save beacon status based on response
-                        mDBHelper.addBeaconStatus(beaconStatus);
+                        } else if (b.getDistance() > 1.0 && isBeaconInRange(uid) == true) {
+                            mBeaconInRange.put(uid, false);
+                            BeaconStatus beaconStatus = new BeaconStatus(uid, mBeaconInRange.get(uid), dateTime, false); //Initially set userConfirmed to false
+                            mDBHelper.addBeaconStatus(beaconStatus);
+                            //rangeStatusChanged = true;
+                            try {
+                                BeaconStatus beaconStatusPrevious = mDBHelper.getBeaconStatusReverseCount(2); //Careful with count
+                                if (beaconStatusPrevious.isBeaconInRange()) {
+                                    long startTime = beaconStatusPrevious.getDateTimeStamp();
+                                    long endTime = dateTime;
+                                    if (endTime - startTime > MINIMUM_EPISODE_DURATION) { // Prevents triggering unwanted notifications from walking past beacon
+                                        sendNotification(String.valueOf(startTime), String.valueOf(endTime)); //TODO get notification user response and save beacon status based on response
+                                    }
+                                }
+                            } catch (NullPointerException e) { }
+                        }
+
+                        //if (rangeStatusChanged) { //only store data if the range status has changed
+                        //    BeaconStatus beaconStatus = new BeaconStatus(uid, mBeaconInRange.get(uid), dateTime, false); //Initially set userConfirmed to false
+                        //    mDBHelper.addBeaconStatus(beaconStatus);
+                        //}
                     }
                 }
-            }
             }
         });
 
@@ -300,50 +279,49 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
         } catch (RemoteException e) {   }
     }
 
-    public boolean isBeaconInRange(String uid){
-        return mBeaconInRange.get(uid);
-    }
-
-    private void sendNotification(String beaconDateTime) {
-        /*
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addNextIntent(new Intent(this, MonitoringActivity.class));
-        PendingIntent yesPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-        */
+    public int sendNotification(String startdatetime, String enddatetime) {
 
         //Process datetime
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(Long.parseLong(beaconDateTime));
         SimpleDateFormat format = new SimpleDateFormat("h:mm aa", Locale.US);
-        String datetimestring = format.format(calendar.getTime());
 
-        //Set ID that increments with each new notification
-        SharedPreferences prefs = getSharedPreferences(Activity.class.getSimpleName(), Context.MODE_PRIVATE);
-        int notificationId = prefs.getInt("notificationNumber", 0);
+        calendar.setTimeInMillis(Long.parseLong(startdatetime));
+        String startdatetimestring = format.format(calendar.getTime());
 
-        //Intent that runs when Yes button is clicked
+        calendar.setTimeInMillis(Long.parseLong(enddatetime));
+        String enddatetimestring = format.format(calendar.getTime());
+
+        //Intent that runs when "Yes" button is clicked
         Intent yesButtonIntent = new Intent(this, ConfirmationReceiver.class);
-        yesButtonIntent.putExtra("beaconDateTime", beaconDateTime);
-        yesButtonIntent.putExtra("userInputed", true);
+        yesButtonIntent.putExtra("startDateTime", startdatetime);
+        yesButtonIntent.putExtra("endDateTime", enddatetime);
+        yesButtonIntent.putExtra("userConfirmed", true);
         yesButtonIntent.putExtra("notificationId", notificationId);
-        PendingIntent yesPendingIntent = PendingIntent.getBroadcast(this, 0, yesButtonIntent, PendingIntent.FLAG_ONE_SHOT);
+        yesButtonIntent.setAction("yesButtonAction " + String.valueOf(notificationId)); //Generate unique action to prompt android to create new PendingIntent
+        PendingIntent yesPendingIntent = PendingIntent.getBroadcast(this, 0, yesButtonIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        PendingIntent noPendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(this, ConfirmationReceiver.class), PendingIntent.FLAG_ONE_SHOT);
-        PendingIntent bodyPendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(), PendingIntent.FLAG_ONE_SHOT);
+        //Intent that runs when "No" button is clicked
+        Intent noButtonIntent = new Intent(this, ConfirmationReceiver.class);
+        noButtonIntent.putExtra("userConfirmed", false);
+        noButtonIntent.putExtra("notificationId", notificationId);
+        noButtonIntent.setAction("noButtonAction " + String.valueOf(notificationId)); //Generate unique action to prompt android to create new PendingIntent
+        PendingIntent noPendingIntent = PendingIntent.getBroadcast(this, 0, noButtonIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        if (Build.VERSION.SDK_INT > 20) {
+        PendingIntent bodyPendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT);
+
+        if (android.os.Build.VERSION.SDK_INT > 20) {
             NotificationCompat.Action yesAction =
                     new NotificationCompat.Action.Builder(R.drawable.ic_check_alt, "Yes", yesPendingIntent).build();
             NotificationCompat.Action noAction =
                     new NotificationCompat.Action.Builder(R.drawable.ic_x_alt, "No", noPendingIntent).build();
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                            .setContentTitle("Bathroom Tracker")
-                            .setContentText("Were you pooping at " + datetimestring + "?")
-                            .setSmallIcon(R.mipmap.ic_launcher)
-                            .setVibrate(new long[]{1000, 1000})
-                            .addAction(yesAction)
-                            .addAction(noAction);
+                    .setContentTitle("Bathroom Tracker")
+                    .setContentText("Were you pooping " + startdatetimestring + " to " + enddatetimestring + "?")
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setVibrate(new long[]{100, 200, 100, 200})
+                    .addAction(yesAction)
+                    .addAction(noAction);
             builder.setContentIntent(bodyPendingIntent);
 
             NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -353,24 +331,33 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
             NotificationCompat.Builder builder =
                     new NotificationCompat.Builder(this)
                             .setContentTitle("Bathroom Tracker")
-                            .setContentText("Were you pooping at " + datetimestring + "?")
+                            .setContentText("Were you pooping " + startdatetimestring + " to " + enddatetimestring + "?")
                             .setSmallIcon(R.mipmap.ic_launcher)
-                            .setVibrate(new long[]{1000, 1000})
+                            .setVibrate(new long[]{100, 200, 100, 200})
                             .addAction(R.drawable.ic_check_alt, "Yes", yesPendingIntent)
                             .addAction(R.drawable.ic_x_alt, "No", noPendingIntent);
             builder.setContentIntent(bodyPendingIntent);
 
             NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+            Log.d("MonitoringActivity: ", "Notification ID: " + String.valueOf(notificationId));
             notificationManager.notify(notificationId, builder.build());
-
         }
 
         //Increment and persist the notification id
-        Log.d(TAG, "Notification ID is " + notificationId);
-        SharedPreferences.Editor editor = prefs.edit();
-        notificationId++;
-        editor.putInt("notificationNumber", notificationId);
-        editor.commit();
+        Log.d(TAG, "Notification ID is set to " + notificationId);
+        return notificationId++;
+    }
+
+    public double getMinimumBeaconEpisodeDuration(){
+        return this.MINIMUM_EPISODE_DURATION;
+    }
+
+    public boolean isBeaconInRange(String uid){
+        return mBeaconInRange.get(uid);
+    }
+
+    public void setScanFrequencyForBeaconIsPresent(boolean scanfrequencyset) {
+        this.scanFrequencyForBeaconIsPresent = scanfrequencyset;
     }
 
     public BeaconStatus generateRandomBeaconStatus(){
