@@ -2,8 +2,13 @@ package org.researchstack.sampleapp.datamanager;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 
+import com.github.mikephil.charting.data.BarEntry;
+
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -15,6 +20,7 @@ public class DashboardHelper {
     private static final String TAG = "DashboardHelper";
     private static final long ONE_DAY_IN_MILLIS = 24L*60L*60L*1000L;
     private DBHelper mDBHelper;
+    private HashMap<String, ArrayList> mMapHolder;
 
     public DashboardHelper(Context context) {
         mDBHelper = new DBHelper(context);
@@ -43,6 +49,37 @@ public class DashboardHelper {
         }
 
         return new TwoValueDataHolder(dayOfThisMonth, episodesPerDay);
+    }
+
+    public HashMap<String,ArrayList> generateTimesPerDayMap() {
+        //From the beaconStatus objects, calculate the following
+        //Number of bathroom use for each date
+
+        TimeZone timeZone = TimeZone.getTimeZone("UTC");
+        Calendar currentDateTime = Calendar.getInstance(timeZone);
+        Log.d(TAG, String.valueOf(currentDateTime.get(Calendar.MONTH)));
+        int totalDaysInMonth = currentDateTime.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+        Calendar startOfThisMonth = mDBHelper.generateStartOfCurrentMonth(currentDateTime); //Set calendar to start of current month
+        long startOfThisMonthMillis = startOfThisMonth.getTimeInMillis();
+
+        //float[] episodesPerDay = new float[totalDaysInMonth];
+        //float[] dayOfThisMonth = new float[totalDaysInMonth];
+
+        ArrayList<String> dayOfThisMonth = new ArrayList<>();
+        ArrayList<BarEntry> episodesPerDay = new ArrayList<>();
+
+        for (int i=0; i<totalDaysInMonth; i++) {
+            dayOfThisMonth.add(i, String.valueOf(i+1));
+            Log.d(TAG, "Date is " + String.valueOf(i+1));
+            episodesPerDay.add(new BarEntry(mDBHelper.getFrequency(startOfThisMonthMillis), i));
+            startOfThisMonthMillis += ONE_DAY_IN_MILLIS; //add 24 hours
+        }
+
+        HashMap<String, ArrayList> storage = new HashMap<String, ArrayList>();
+        storage.put("episodesPerDay", episodesPerDay);
+        storage.put("dayOfThisMonth", dayOfThisMonth);
+        return storage;
     }
 
     public int findBeaconStartDayOfMonth(){

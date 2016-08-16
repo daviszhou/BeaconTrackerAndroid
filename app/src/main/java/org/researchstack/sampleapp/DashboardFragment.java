@@ -25,11 +25,14 @@ import org.researchstack.backbone.ui.graph.LineChartCard;
 import org.researchstack.backbone.ui.graph.PieChartCard;
 import org.researchstack.backbone.ui.graph.ProgressChartCard;
 import org.researchstack.backbone.utils.ThemeUtils;
+import org.researchstack.sampleapp.datamanager.DashboardHelper;
+import org.researchstack.sampleapp.datamanager.TwoValueDataHolder;
 import org.researchstack.skin.R;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -37,12 +40,14 @@ import java.util.Locale;
 public class DashboardFragment extends Fragment
 {
     private View emptyView;
+    private DashboardHelper mDashboardHelper;
+    private HashMap<String, ArrayList> mMapHolder;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        return inflater.inflate(R.layout.rss_fragment_dashboard, container, false);
+        return inflater.inflate(R.layout.rss_fragment_dashboard, container, false); //inflate view inside fragment
     }
 
     @Override
@@ -57,17 +62,6 @@ public class DashboardFragment extends Fragment
 
     private void initProgressChart(View view)
     {
-        ProgressChartCard progressCard = (ProgressChartCard) view.findViewById(R.id.dashboard_chart_progress);
-        progressCard.setTitle("Amount of pie eaten");
-        progressCard.setData(createProgressChartData());
-        progressCard.setFinishAction(o -> {
-            Snackbar.make(view, "Finish Action", Snackbar.LENGTH_SHORT).show();
-        });
-
-        PieChartCard pieCard = (PieChartCard) view.findViewById(R.id.dashboard_chart_pie);
-        pieCard.setTitle("Pie Flavors");
-        pieCard.setData(createPieChartData());
-
         BarChartCard barCard = (BarChartCard) view.findViewById(R.id.dashboard_chart_bar);
         barCard.setTitle("Pie Flavors");
         barCard.setData(createBarChartData(), false);
@@ -90,74 +84,17 @@ public class DashboardFragment extends Fragment
         });
     }
 
-    public List<PieData> createProgressChartData()
-    {
-        List<PieData> items = new ArrayList<>();
-        for(int i = 0, size = 12; i <= size; i++)
-        {
-            List<Entry> entries = new ArrayList<>();
-            entries.add(new Entry(i, 0)); // Complete
-            entries.add(new Entry(size - i, 1)); // Incomplete
-
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.MONTH, - i);
-
-            String month = calendar.getDisplayName(Calendar.MONTH,
-                    Calendar.SHORT,
-                    Locale.getDefault());
-
-            PieDataSet data = new PieDataSet(entries, month + " '16");
-            data.setDrawValues(false);
-            data.setColors(new int[] {
-                    ThemeUtils.getAccentColor(getContext()), 0xFFe5e5e5
-            });
-
-            String[] labels = new String[] {"Incomplete", "Complete"};
-
-            items.add(new PieData(labels, data));
-        }
-        return items;
-    }
-
-    public PieData createPieChartData()
-    {
-        List<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(50, 0));
-        entries.add(new Entry(25, 1));
-        entries.add(new Entry(12.5f, 2));
-        entries.add(new Entry(12.5f, 3));
-
-        PieDataSet data = new PieDataSet(entries, null);
-        data.setDrawValues(false);
-        data.setColors(new int[] {
-                0xFF673ab7, 0xFF2196f3, 0xFF4caf50, 0xFF009688
-        });
-
-        String[] labels = new String[] {"Blackberry", "Blueberry", "Green apple", "Seaweed"};
-
-        return new PieData(labels, data);
-    }
-
     public BarData createBarChartData()
     {
         NumberFormat numberFormat = NumberFormat.getInstance();
         numberFormat.setMinimumFractionDigits(0);
         numberFormat.setMaximumFractionDigits(2);
 
-        ArrayList<String> xVals = new ArrayList<>();
-        for(int i = 0; i < 12; i++)
-        {
-            xVals.add(i + "");
-        }
+        mDashboardHelper = new DashboardHelper(getActivity());
+        HashMap<String, ArrayList> frequencyHolder = mDashboardHelper.generateTimesPerDayMap();
 
-        ArrayList<BarEntry> yVals1 = new ArrayList<>();
-
-        for(int i = 0; i < 12; i++)
-        {
-            float mult = (5 + 1);
-            int val = (int) (Math.random() * mult);
-            yVals1.add(new BarEntry((val == 0 ? 1 : val), i));
-        }
+        ArrayList<String> xVals = frequencyHolder.get("dayOfThisMonth");
+        ArrayList<BarEntry> yVals1 = frequencyHolder.get("episodesPerDay");
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
         set1.setColor(0xFF2196f3);
@@ -239,4 +176,54 @@ public class DashboardFragment extends Fragment
 
         return new LineData(xValues, set);
     }
+
+    /*
+    public List<PieData> createProgressChartData()
+    {
+        List<PieData> items = new ArrayList<>();
+        for(int i = 0, size = 12; i <= size; i++)
+        {
+            List<Entry> entries = new ArrayList<>();
+            entries.add(new Entry(i, 0)); // Complete
+            entries.add(new Entry(size - i, 1)); // Incomplete
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.MONTH, - i);
+
+            String month = calendar.getDisplayName(Calendar.MONTH,
+                    Calendar.SHORT,
+                    Locale.getDefault());
+
+            PieDataSet data = new PieDataSet(entries, month + " '16");
+            data.setDrawValues(false);
+            data.setColors(new int[] {
+                    ThemeUtils.getAccentColor(getContext()), 0xFFe5e5e5
+            });
+
+            String[] labels = new String[] {"Incomplete", "Complete"};
+
+            items.add(new PieData(labels, data));
+        }
+        return items;
+    }
+
+    public PieData createPieChartData()
+    {
+        List<Entry> entries = new ArrayList<>();
+        entries.add(new Entry(50, 0));
+        entries.add(new Entry(25, 1));
+        entries.add(new Entry(12.5f, 2));
+        entries.add(new Entry(12.5f, 3));
+
+        PieDataSet data = new PieDataSet(entries, null);
+        data.setDrawValues(false);
+        data.setColors(new int[] {
+                0xFF673ab7, 0xFF2196f3, 0xFF4caf50, 0xFF009688
+        });
+
+        String[] labels = new String[] {"Blackberry", "Blueberry", "Green apple", "Seaweed"};
+
+        return new PieData(labels, data);
+    }
+    */
 }
