@@ -30,7 +30,6 @@
             android:screenOrientation="portrait">
         </activity>
 
-
         <activity
             android:name="org.researchstack.skin.ui.OnboardingActivity"
             android:label="@string/app_name"
@@ -87,6 +86,15 @@
         <activity
             android:name="org.researchstack.sampleapp.NotificationPermissionActivity"
             android:label="@string/sample_notification_example"/>
+
+        <activity
+            android:name=".bluetooth.MonitoringActivity"
+            android:launchMode="singleInstance"/>
+
+        <receiver
+            android:name=".datamanager.ConfirmationReceiver"
+            android:enabled="true"
+        />
 
         <receiver
             android:name="org.researchstack.skin.notification.TaskNotificationReceiver"
