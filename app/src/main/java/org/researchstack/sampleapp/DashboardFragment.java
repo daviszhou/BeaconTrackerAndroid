@@ -47,7 +47,7 @@ public class DashboardFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        return inflater.inflate(R.layout.rss_fragment_dashboard, container, false); //inflate view inside fragment
+        return inflater.inflate(org.researchstack.sampleapp.R.layout.fragment_dashboard, container, false); //inflate view inside fragment
     }
 
     @Override
