@@ -3,9 +3,12 @@ package org.researchstack.sampleapp.bluetooth;
 import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.os.Binder;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.RemoteException;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -21,6 +24,7 @@ import android.widget.Switch;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
@@ -32,174 +36,71 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Random;
 
+import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
+import org.altbeacon.beacon.startup.BootstrapNotifier;
+import org.altbeacon.beacon.startup.RegionBootstrap;
 import org.researchstack.sampleapp.R;
 import org.researchstack.sampleapp.SampleApplication;
 import  org.researchstack.sampleapp.datamanager.BeaconStatus;
 import  org.researchstack.sampleapp.datamanager.ConfirmationReceiver;
 import  org.researchstack.sampleapp.datamanager.DBHelper;
 
-/**
- *
- * @author dyoung
- * @author Matt Tyler
- */
-//TODO move interface/display functions to fragment object
+public class MonitoringActivity extends Service implements BeaconConsumer, BootstrapNotifier {
 
-public class MonitoringActivity extends Activity implements BeaconConsumer {
     protected static final String TAG = "MonitoringActivity";
-    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
-    private static final long MINIMUM_EPISODE_DURATION = 5L*1000L; //Beacon episode needs to be 5 seconds to be registered
-    private BeaconManager mBeaconManager = BeaconManager.getInstanceForApplication(this);
-    private DBHelper mDBHelper = new DBHelper(this);
-    private HashMap<String, Boolean> mBeaconInRange = new HashMap<String, Boolean>();
+    private static final long MINIMUM_EPISODE_DURATION = 5L * 1000L; //Beacon episode needs to be 5 seconds to be registered
     private int notificationId = 0;
     private boolean scanFrequencyForBeaconIsPresent = false;
-    private Fragment mMonitoringFragment;
+    private HashMap<String, Boolean> mBeaconInRange = new HashMap<String, Boolean>();
+    private BeaconManager mBeaconManager;
+    private BackgroundPowerSaver backgroundPowerSaver;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate() {
         Log.d(TAG, "MonitoringActivity onCreate");
-        super.onCreate(savedInstanceState);
+        super.onCreate();
 
-        //setContentView(R.layout.activity_monitoring);
-        verifyBluetooth();
+        mBeaconManager = org.altbeacon.beacon.BeaconManager.getInstanceForApplication(this);
+        mBeaconManager.getBeaconParsers().clear();
+        mBeaconManager.getBeaconParsers().add(new BeaconParser()
+                .setBeaconLayout("s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19")); //Modify for non Eddy Stone Beacons
 
-        mMonitoringFragment = getFragmentManager().findFragmentById(R.id.monitoringFragment);
-        //mMonitoringFragment.logToDisplay("Application just launched");
+        Log.d(TAG, "setting up background monitoring for beacons and power saving");
+        Region region = new Region("backgroundRegion", null, null, null);
+        RegionBootstrap regionBootstrap = new RegionBootstrap(this, region);
 
-        //Initiate Switch
-        Switch mySwitch = (Switch) findViewById(R.id.mySwitch); //#set variable mySwitch to interface switch
-        mySwitch.setChecked(true); //#set switch to start with "ON"
-        mySwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener(){ //#create a new change listener and attach to switch
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        backgroundPowerSaver = new BackgroundPowerSaver(this);
 
-                if(isChecked) {
-                    mBeaconManager.setForegroundScanPeriod(1100L); //scan for 1 seconds
-                    mBeaconManager.setForegroundBetweenScanPeriod(0L); //rest 0 seconds between scans
-                    try {
-                        mBeaconManager.updateScanPeriods();
-                    } catch (RemoteException e) {
-                        //create function to alert user
-                        Log.d(TAG, "Error changing scan frequency");
-                        //logToDisplay("Error changing scan frequency");
-                    }
-                    //logToDisplay("Set to frequent scanning");
-                    Log.d(TAG, "Set to frequent scanning");
+        Log.d(TAG, "Checked Bluetooth");
+        Intent intent = new Intent(this, MonitoringActivity.class);
+        Log.d(TAG, "Created Monitoring Intent");
+        startService(intent);
+        Log.d(TAG, "Launched Monitoring Intent");
 
-                } else {
-                    mBeaconManager.setForegroundScanPeriod(5L * 1100L); //scan for 5 seconds
-                    mBeaconManager.setForegroundBetweenScanPeriod(60L * 1000L); //rest 10 seconds between scans
-                    try {
-                        mBeaconManager.updateScanPeriods();
-                    } catch (RemoteException e) {
-                        //create function to alert user
-                        Log.d(TAG, "Error changing scan frequency");
-                        //logToDisplay("Error changing scan frequency");
-                    }
-
-                    //logToDisplay("Set to infrequent scanning");
-                    Log.d(TAG, "Set to frequent scanning");
-                }
-            }
-        });
+        mBeaconManager.setBackgroundScanPeriod(1100L); //scan for 1 seconds
+        mBeaconManager.setBackgroundBetweenScanPeriod(0L); //no rest between scans
+        try {
+            mBeaconManager.updateScanPeriods();
+        } catch (RemoteException e) {
+            //create function to alert user
+            Log.d(TAG, "Error changing scan frequency");
+        }
 
         //Ranging Functions
         mBeaconManager.bind(this);
+        Log.d(TAG, "Binding activity manager to app");
 
         //TEST add beacon statuses with random datetime
         //Remove later
         //for (int i=0;i<10;i++) {
-        //    BeaconStatus status = generateRandomBeaconStatus();
+        //    BeaconStatus status = generateRandomBeaconStatus(true);
         //    mDBHelper.addBeaconStatus(status);
         //}
-
     }
-
-    @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle currentState) {
-        super.onSaveInstanceState(currentState);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        ((SampleApplication) this.getApplicationContext()).setMonitoringActivity(this);
-        if (mBeaconManager.isBound(this)) mBeaconManager.setBackgroundMode(false);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        ((SampleApplication) this.getApplicationContext()).setMonitoringActivity(null);
-        if (mBeaconManager.isBound(this)) mBeaconManager.setBackgroundMode(true);
-    }
-
-    private void requestBluetooth(){
-        Intent intentRequestBluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE); //#create new intent that sends user-mediate bluetooth request
-        int REQUEST_ENABLE_BT = 1; //#: If >= 0, this code will be returned in onActivityResult() when the activity exits
-        startActivityForResult(intentRequestBluetooth, REQUEST_ENABLE_BT); //#launch activity with request to receive result back
-    }
-
-    public void onDisableBluetoothClicked(View view) {
-        if (!BeaconManager.getInstanceForApplication(this).checkAvailability()) { //#check that there is instance of Beacon Manager
-            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter(); //#attaches variable to bluetooth adapter
-            if (bluetoothAdapter.isEnabled()) {
-                bluetoothAdapter.disable();
-                //TODO add error handling + need to add permissions to function
-            }
-        }
-    }
-
-    @TargetApi(17)
-    private void verifyBluetooth() {
-        try {
-            if (!BeaconManager.getInstanceForApplication(this).checkAvailability()) { //#check that there is instance of Beacon Manager
-                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter(); //#attaches variable to bluetooth adapter
-                if (!bluetoothAdapter.isEnabled()) {
-                    requestBluetooth(); //#if bluetooth is not enabled, launch requestBluetooth method
-                }
-            }
-        } catch (RuntimeException e) { //#create alert for user if the phone does nto support bluetooth
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Bluetooth LE not available");
-            builder.setMessage("Sorry, this device does not support Bluetooth LE.");
-            builder.setPositiveButton(android.R.string.ok, null);
-            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    finish();
-                    System.exit(0);
-                }
-
-            });
-            builder.show();
-        }
-    }
-
-    //TODO move this
-
-
-    /*
-    public void onDashboardClicked(View view) {
-        if (!mDBHelper.checkIfEmpty()) {
-            Intent intent = new Intent(this, DashboardActivity.class);
-            this.startActivity(intent);
-        } else {
-            logToDisplay("No beacon detections stored. Cannot initialize dashboard.");
-        }
-    }
-    */
 
     //Ranging Functions
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         super.onDestroy();
         mBeaconManager.unbind(this);
     }
@@ -219,6 +120,8 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
             scanFrequencyForBeaconIsPresent = true;
         }
 
+        DBHelper dBHelper = new DBHelper(this);
+
         mBeaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
@@ -236,25 +139,25 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
                         Date time = Calendar.getInstance().getTime();
                         //logToDisplay("At " + time + " the beacon " + b.getId1().toString() + " is about " + b.getDistance() + " meters away.");
 
-                    /*
-                    String string = new String();
-                    Log.d(TAG, "In Range is " + string.valueOf(mBeaconInRange.get(uid) ) );
-                    */
+                        /*
+                        String string = new String();
+                        Log.d(TAG, "In Range is " + string.valueOf(mBeaconInRange.get(uid) ) );
+                        */
                         long dateTime = System.currentTimeMillis();
 
                         if (b.getDistance() < 1.0 && isBeaconInRange(uid) == false) { //if phone is within half meters of beacon
                             mBeaconInRange.put(uid, true);
                             BeaconStatus beaconStatus = new BeaconStatus(uid, mBeaconInRange.get(uid), dateTime, false); //Initially set userConfirmed to false
-                            mDBHelper.addBeaconStatus(beaconStatus);
+                            dBHelper.addBeaconStatus(beaconStatus);
                             //rangeStatusChanged = true;
 
                         } else if (b.getDistance() > 1.0 && isBeaconInRange(uid) == true) {
                             mBeaconInRange.put(uid, false);
                             BeaconStatus beaconStatus = new BeaconStatus(uid, mBeaconInRange.get(uid), dateTime, false); //Initially set userConfirmed to false
-                            mDBHelper.addBeaconStatus(beaconStatus);
+                            dBHelper.addBeaconStatus(beaconStatus);
                             //rangeStatusChanged = true;
                             try {
-                                BeaconStatus beaconStatusPrevious = mDBHelper.getBeaconStatusReverseCount(2); //Careful with count
+                                BeaconStatus beaconStatusPrevious = dBHelper.getBeaconStatusReverseCount(2); //Careful with count
                                 if (beaconStatusPrevious.isBeaconInRange()) {
                                     long startTime = beaconStatusPrevious.getDateTimeStamp();
                                     long endTime = dateTime;
@@ -360,13 +263,103 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
         this.scanFrequencyForBeaconIsPresent = scanfrequencyset;
     }
 
-    public BeaconStatus generateRandomBeaconStatus(){
+    public BeaconStatus generateRandomBeaconStatus(boolean inRange){
         long currentDateTime = System.currentTimeMillis();
-        long lowerRange = 1470000000000L;
+        long lowerRange = System.currentTimeMillis()-30L*24L*60L*60L*1000L;
 
         Random r = new Random();
         long datetime =  + (long)(r.nextDouble()*(currentDateTime - lowerRange));
 
-        return new BeaconStatus("testuid", true, datetime, true);
+        return new BeaconStatus("testuid", inRange, datetime, true);
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) { //Required method for service
+        return null;
+    }
+
+    @Override
+    public void didEnterRegion(Region arg0) {
+        // In this example, this class sends a notification to the user whenever a Beacon
+        // matching a Region (defined above) are first seen.
+        Log.d(TAG, "did enter region.");
+
+        mBeaconManager.setBackgroundScanPeriod(1100L); //scan for 1 seconds
+        mBeaconManager.setBackgroundBetweenScanPeriod(60L*1000L); //rest 60 seconds between scans
+        try {
+            mBeaconManager.updateScanPeriods();
+        } catch (RemoteException e) {
+            //create function to alert user
+            Log.d(TAG, "Error changing scan frequency");
+        }
+
+//        if (!haveDetectedBeaconsSinceBoot) {
+//            Log.d(TAG, "auto launching MainActivity");
+//            // The very first time since boot that we detect an beacon, we launch the
+//            // MainActivity
+//            //Intent intent = new Intent(this, MonitoringActivity.class);
+//            //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            // Important:  make sure to add android:launchMode="singleInstance" in the manifest
+//            // to keep multiple copies of this activity from getting created if the user has
+//            // already manually launched the app.
+//            //this.startActivity(intent);
+//            haveDetectedBeaconsSinceBoot = true;
+//
+//        } else {
+//            if (monitoringActivity != null) {
+//                // If the Monitoring Activity is visible, we log info about the beacons we have
+//                // seen on its display
+//                //monitoringActivity.logToDisplay("I see a beacon again" );
+//            } else {
+//                // If we have already seen beacons before, but the monitoring activity is not in
+//                // the foreground
+//            }
+//        }
+    }
+
+    @Override
+    public void didExitRegion(Region region) {
+        //monitoringActivity.logToDisplay("I no longer see a beacon.");
+        setScanFrequencyForBeaconIsPresent(false);
+
+        DBHelper dBHelper = new DBHelper(this);
+
+        //Add "out of range" beacon status if missing
+        //EX if the user leaves beacon signal range before app registers that user is outside the in range distance
+        //TODO add notification prompt
+        BeaconStatus beaconStatus = dBHelper.getBeaconStatusReverseCount(1);
+        if (beaconStatus.isBeaconInRange()) {
+
+            String uid = beaconStatus.getUID();
+            Long dateTime = System.currentTimeMillis();
+            BeaconStatus newBeaconStatus = new BeaconStatus(uid, false, dateTime, false);
+
+            dBHelper.addBeaconStatus(newBeaconStatus);
+
+            //rangeStatusChanged = true;
+            try {
+                BeaconStatus beaconStatusPrevious = dBHelper.getBeaconStatusReverseCount(2); //Careful with count
+                if (beaconStatusPrevious.isBeaconInRange()) {
+                    long startTime = beaconStatusPrevious.getDateTimeStamp();
+                    long endTime = dateTime;
+                    if (endTime - startTime > getMinimumBeaconEpisodeDuration()) { // Prevents triggering unwanted notifications from walking past beacon
+                        sendNotification(String.valueOf(startTime), String.valueOf(endTime)); //TODO get notification user response and save beacon status based on response
+                    }
+                }
+            } catch (NullPointerException e) { }
+        }
+
+        mBeaconManager.setBackgroundScanPeriod(5L*1100L); //scan for 5 seconds
+        mBeaconManager.setBackgroundBetweenScanPeriod(5L*60L*1000L); //rest 5 minutes between scans
+        try {
+            mBeaconManager.updateScanPeriods();
+        } catch (RemoteException e) {
+            //create function to alert user
+            Log.d(TAG, "Error changing scan frequency");
+        }
+    }
+
+    @Override
+    public void didDetermineStateForRegion(int state, Region region) {
     }
 }
