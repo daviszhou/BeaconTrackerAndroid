@@ -1,25 +1,14 @@
 package org.researchstack.sampleapp.bluetooth;
 
-import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
-import android.os.Binder;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.app.Fragment;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.view.View;
-import android.widget.CompoundButton;
-import android.widget.Switch;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -40,14 +29,13 @@ import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.startup.RegionBootstrap;
 import org.researchstack.sampleapp.R;
-import org.researchstack.sampleapp.SampleApplication;
 import  org.researchstack.sampleapp.datamanager.BeaconStatus;
 import  org.researchstack.sampleapp.datamanager.ConfirmationReceiver;
 import  org.researchstack.sampleapp.datamanager.DBHelper;
 
-public class MonitoringActivity extends Service implements BeaconConsumer, BootstrapNotifier {
+public class MonitoringService extends Service implements BeaconConsumer, BootstrapNotifier {
 
-    protected static final String TAG = "MonitoringActivity";
+    protected static final String TAG = "MonitoringService";
     private static final long MINIMUM_EPISODE_DURATION = 5L * 1000L; //Beacon episode needs to be 5 seconds to be registered
     private int notificationId = 0;
     private boolean scanFrequencyForBeaconIsPresent = false;
@@ -57,7 +45,7 @@ public class MonitoringActivity extends Service implements BeaconConsumer, Boots
 
     @Override
     public void onCreate() {
-        Log.d(TAG, "MonitoringActivity onCreate");
+        Log.d(TAG, "MonitoringService onCreate");
         super.onCreate();
 
         mBeaconManager = org.altbeacon.beacon.BeaconManager.getInstanceForApplication(this);
@@ -72,7 +60,7 @@ public class MonitoringActivity extends Service implements BeaconConsumer, Boots
         backgroundPowerSaver = new BackgroundPowerSaver(this);
 
         Log.d(TAG, "Checked Bluetooth");
-        Intent intent = new Intent(this, MonitoringActivity.class);
+        Intent intent = new Intent(this, MonitoringService.class);
         Log.d(TAG, "Created Monitoring Intent");
         startService(intent);
         Log.d(TAG, "Launched Monitoring Intent");
@@ -242,7 +230,7 @@ public class MonitoringActivity extends Service implements BeaconConsumer, Boots
             builder.setContentIntent(bodyPendingIntent);
 
             NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-            Log.d("MonitoringActivity: ", "Notification ID: " + String.valueOf(notificationId));
+            Log.d("MonitoringService: ", "Notification ID: " + String.valueOf(notificationId));
             notificationManager.notify(notificationId, builder.build());
         }
 
@@ -297,7 +285,7 @@ public class MonitoringActivity extends Service implements BeaconConsumer, Boots
 //            Log.d(TAG, "auto launching MainActivity");
 //            // The very first time since boot that we detect an beacon, we launch the
 //            // MainActivity
-//            //Intent intent = new Intent(this, MonitoringActivity.class);
+//            //Intent intent = new Intent(this, MonitoringService.class);
 //            //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 //            // Important:  make sure to add android:launchMode="singleInstance" in the manifest
 //            // to keep multiple copies of this activity from getting created if the user has

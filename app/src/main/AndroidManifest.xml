@@ -89,7 +89,7 @@
             android:label="@string/sample_notification_example"/>
 
         <service
-            android:name=".bluetooth.MonitoringActivity"
+            android:name=".bluetooth.MonitoringService"
             android:label="@string/app_name" />
 
         <receiver

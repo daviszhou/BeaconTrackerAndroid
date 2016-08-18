@@ -5,30 +5,16 @@ import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Build;
-import android.os.Bundle;
-import android.os.IBinder;
-import android.os.RemoteException;
 import android.support.multidex.MultiDex;
 import android.util.Log;
-import android.bluetooth.BluetoothAdapter;
-import android.view.View;
-import android.widget.Toast;
 
 import org.altbeacon.beacon.BeaconManager;
-import org.altbeacon.beacon.BeaconParser;
-import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
-import org.altbeacon.beacon.startup.BootstrapNotifier;
-import org.altbeacon.beacon.startup.RegionBootstrap;
-import org.researchstack.sampleapp.bluetooth.MonitoringActivity;
-import org.researchstack.sampleapp.datamanager.BeaconStatus;
-import org.researchstack.sampleapp.datamanager.DBHelper;
+import org.researchstack.sampleapp.bluetooth.MonitoringService;
 import org.researchstack.skin.PermissionRequestManager;
 import org.researchstack.skin.ResearchStack;
 
@@ -39,7 +25,7 @@ public class SampleApplication extends Application
     private BeaconManager mBeaconManager;
     private BackgroundPowerSaver backgroundPowerSaver;
     public static final String PERMISSION_NOTIFICATIONS = "SampleApp.permission.NOTIFICATIONS";
-    MonitoringActivity mService;
+    MonitoringService mService;
     boolean mBound = false;
 
     @Override
@@ -85,7 +71,7 @@ public class SampleApplication extends Application
         verifyBluetooth();
 
         Log.d(TAG, "Launch Beacon Monitoring Service");
-        Intent intent = new Intent(this, MonitoringActivity.class);
+        Intent intent = new Intent(this, MonitoringService.class);
         startService(intent);
     }
 
