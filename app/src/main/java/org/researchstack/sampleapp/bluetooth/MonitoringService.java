@@ -114,18 +114,13 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
                         if (i > mBeaconInRange.size()) { //new beacon is found
                             mBeaconInRange.put(uid, false); //put a new key-value pair in the hashmap
                         }
-
                         //boolean rangeStatusChanged = false;
-                        Date time = Calendar.getInstance().getTime();
-                        //logToDisplay("At " + time + " the beacon " + b.getId1().toString() + " is about " + b.getDistance() + " meters away.");
 
-                        /*
-                        String string = new String();
-                        Log.d(TAG, "In Range is " + string.valueOf(mBeaconInRange.get(uid) ) );
-                        */
+                        Date time = Calendar.getInstance().getTime();
+
                         long dateTime = System.currentTimeMillis();
 
-                        if (b.getDistance() < 1.0 && isBeaconInRange(uid) == false) {
+                        if (b.getDistance() < 1.0 && mBeaconInRange.get(uid) == false) {
 
                             mBeaconInRange.put(uid, true);
                             BeaconStatus beaconStatus = new BeaconStatus(uid, mBeaconInRange.get(uid), dateTime, false); //Initially set userConfirmed to false
@@ -134,7 +129,7 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
 
                             setScanFrequency(HIGH_SCAN_TIME, HIGH_SCAN_INTERVAL);
 
-                        } else if (b.getDistance() > 1.0 && isBeaconInRange(uid) == true) {
+                        } else if (b.getDistance() > 1.0 && mBeaconInRange.get(uid) == true) {
 
                             mBeaconInRange.put(uid, false);
                             BeaconStatus beaconStatus = new BeaconStatus(uid, mBeaconInRange.get(uid), dateTime, false); //Initially set userConfirmed to false
@@ -170,18 +165,6 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
         } catch (RemoteException e) {   }
     }
 
-//    public double getMinimumBeaconEpisodeDuration(){
-//        return this.MINIMUM_EPISODE_DURATION;
-//    }
-
-    public boolean isBeaconInRange(String uid){
-        return mBeaconInRange.get(uid);
-    }
-
-//    public void setScanFrequencyForBeaconIsPresent(boolean scanfrequencyset) {
-//        this.scanFrequencyForBeaconIsPresent = scanfrequencyset;
-//    }
-
     public BeaconStatus generateRandomBeaconStatus(boolean inRange){
         long currentDateTime = System.currentTimeMillis();
         long lowerRange = System.currentTimeMillis()-30L*24L*60L*60L*1000L;
@@ -199,33 +182,10 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
 
     @Override
     public void didEnterRegion(Region arg0) {
-        // In this example, this class sends a notification to the user whenever a Beacon
-        // matching a Region (defined above) are first seen.
+
         Log.d(TAG, "did enter region.");
 
         setScanFrequency(MEDIUM_SCAN_TIME, MEDIUM_SCAN_INTERVAL);
-//        if (!haveDetectedBeaconsSinceBoot) {
-//            Log.d(TAG, "auto launching MainActivity");
-//            // The very first time since boot that we detect an beacon, we launch the
-//            // MainActivity
-//            //Intent intent = new Intent(this, MonitoringService.class);
-//            //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//            // Important:  make sure to add android:launchMode="singleInstance" in the manifest
-//            // to keep multiple copies of this activity from getting created if the user has
-//            // already manually launched the app.
-//            //this.startActivity(intent);
-//            haveDetectedBeaconsSinceBoot = true;
-//
-//        } else {
-//            if (monitoringActivity != null) {
-//                // If the Monitoring Activity is visible, we log info about the beacons we have
-//                // seen on its display
-//                //monitoringActivity.logToDisplay("I see a beacon again" );
-//            } else {
-//                // If we have already seen beacons before, but the monitoring activity is not in
-//                // the foreground
-//            }
-//        }
     }
 
     @Override
@@ -242,7 +202,6 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
 
             dBHelper.addBeaconStatus(newBeaconStatus);
 
-            //rangeStatusChanged = true;
             try {
                 BeaconStatus beaconStatusPrevious = dBHelper.getBeaconStatusReverseCount(2); //Careful with count
                 if (beaconStatusPrevious.isBeaconInRange()) {
