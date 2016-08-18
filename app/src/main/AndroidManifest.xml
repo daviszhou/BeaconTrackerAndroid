@@ -3,6 +3,7 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.BLUETOOTH" />
 
     <application
         android:name="org.researchstack.sampleapp.SampleApplication"
@@ -87,9 +88,9 @@
             android:name="org.researchstack.sampleapp.NotificationPermissionActivity"
             android:label="@string/sample_notification_example"/>
 
-        <activity
+        <service
             android:name=".bluetooth.MonitoringActivity"
-            android:launchMode="singleInstance"/>
+            android:label="@string/app_name" />
 
         <receiver
             android:name=".datamanager.ConfirmationReceiver"
