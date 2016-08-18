@@ -18,6 +18,7 @@ import org.researchstack.sampleapp.datamanager.DBHelper;
 /**
  * Created by davis on 8/3/16.
  */
+@Deprecated
 public class BeaconTrackerFragment extends Fragment {
     private static final String TAG = "BeaconReferenceApp";
     private View emptyView;

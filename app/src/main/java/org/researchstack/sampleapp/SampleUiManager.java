@@ -42,13 +42,6 @@ public class SampleUiManager extends UiManager
                 .setIcon(R.drawable.rss_ic_tab_dashboard)
                 .setClass(DashboardFragment.class)
                 .build());
-
-        navItems.add(new ActionItem.ActionItemBuilder().setId(R.id.nav_beacons)
-                .setTitle(R.string.rss_beacons)
-                .setIcon(R.drawable.rss_ic_tab_activities)
-                .setClass(BeaconTrackerFragment.class)
-                .build());
-
         return navItems;
     }
 
@@ -73,13 +66,6 @@ public class SampleUiManager extends UiManager
                 .setIcon(R.drawable.rss_ic_action_settings)
                 .setClass(SampleSettingsActivity.class)
                 .build());
-
-        navItems.add(new ActionItem.ActionItemBuilder().setId(R.id.nav_beacons)
-                .setTitle(R.string.rss_beacons)
-                .setIcon(R.drawable.rss_ic_tab_activities)
-                .setClass(BeaconTrackerFragment.class)
-                .build());
-
         return navItems;
     }
 
