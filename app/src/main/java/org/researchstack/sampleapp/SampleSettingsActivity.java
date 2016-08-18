@@ -28,7 +28,6 @@ public class SampleSettingsActivity extends BaseActivity
         }
     }
 
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {

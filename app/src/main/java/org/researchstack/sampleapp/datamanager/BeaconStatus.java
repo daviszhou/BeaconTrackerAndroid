@@ -49,8 +49,6 @@ public class BeaconStatus {
     }
 
     public int getIntUserConfirmed() {
-        int a = (this.mUserConfirmed) ? 1:0;
-        //Log.d("BeaconStatus", String.valueOf(a));
         return (this.mUserConfirmed) ? 1:0;
     }
 
