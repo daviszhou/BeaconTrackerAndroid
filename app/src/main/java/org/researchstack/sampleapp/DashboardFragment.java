@@ -69,13 +69,6 @@ public class DashboardFragment extends Fragment
             Snackbar.make(view, "Expand Action", Snackbar.LENGTH_SHORT).show();
         });
 
-        BarChartCard barStackedCard = (BarChartCard) view.findViewById(R.id.dashboard_chart_bar_stacked);
-        barStackedCard.setTitle("Pie Flavors");
-        barStackedCard.setData(createStackedBarChartData(), true);
-        barStackedCard.setExpandAction(o -> {
-            Snackbar.make(view, "Expand Action", Snackbar.LENGTH_SHORT).show();
-        });
-
         LineChartCard lineCard = (LineChartCard) view.findViewById(R.id.dashboard_chart_line);
         lineCard.setTitle("Daily steps");
         lineCard.setData(createLineChartData());
@@ -98,43 +91,6 @@ public class DashboardFragment extends Fragment
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
         set1.setColor(0xFF2196f3);
-        set1.setBarSpacePercent(40f);
-
-        ArrayList<IBarDataSet> dataSets = new ArrayList<>();
-        dataSets.add(set1);
-
-        BarData data = new BarData(xVals, dataSets);
-        data.setValueTextSize(10);
-        data.setValueTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
-        data.setValueTextColor(Color.WHITE);
-        data.setValueFormatter((value, entry, dataSetIndex, viewPortHandler) -> numberFormat.format(
-                value));
-        return data;
-    }
-
-    public BarData createStackedBarChartData()
-    {
-        NumberFormat numberFormat = NumberFormat.getInstance();
-        numberFormat.setMinimumFractionDigits(0);
-        numberFormat.setMaximumFractionDigits(2);
-
-        ArrayList<String> xVals = new ArrayList<>();
-        for(int i = 0; i < 12; i++)
-        {
-            xVals.add(i + "");
-        }
-
-        ArrayList<BarEntry> yVals1 = new ArrayList<>();
-
-        for(int i = 0; i < 12; i++)
-        {
-            float mult = (5 + 1);
-            int val = (int) (Math.random() * mult);
-            yVals1.add(new BarEntry(new float[] {(val == 0 ? 1 : val - 1), 1}, i));
-        }
-
-        BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
-        set1.setColors(new int[] {0xFF2196f3, 0xFF3f51b5});
         set1.setBarSpacePercent(40f);
 
         ArrayList<IBarDataSet> dataSets = new ArrayList<>();
