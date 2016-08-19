@@ -196,6 +196,7 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
         BeaconStatus beaconStatus = dBHelper.getBeaconStatusReverseCount(1);
         if (beaconStatus.isBeaconInRange()) {
 
+            // Add out of range beacon status
             String uid = beaconStatus.getUID();
             Long dateTime = System.currentTimeMillis();
             BeaconStatus newBeaconStatus = new BeaconStatus(uid, false, dateTime, false);
@@ -212,6 +213,10 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
                     }
                 }
             } catch (NullPointerException e) { }
+
+            // Set beacon as out of range
+            String uID = beaconStatus.getUID();
+            mBeaconInRange.put(uID, false);
         }
 
         setScanFrequency(LOW_SCAN_TIME, LOW_SCAN_INTERVAL);
