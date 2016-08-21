@@ -63,18 +63,20 @@ public class DashboardFragment extends Fragment
     private void initProgressChart(View view)
     {
         BarChartCard barCard = (BarChartCard) view.findViewById(R.id.dashboard_chart_bar);
-        barCard.setTitle("Pie Flavors");
+        barCard.setTitle("Bathroom Use Frequency");
         barCard.setData(createBarChartData(), false);
         barCard.setExpandAction(o -> {
             Snackbar.make(view, "Expand Action", Snackbar.LENGTH_SHORT).show();
         });
 
         LineChartCard lineCard = (LineChartCard) view.findViewById(R.id.dashboard_chart_line);
-        lineCard.setTitle("Daily steps");
+        lineCard.setTitle("Bathroom Use Total Duration");
         lineCard.setData(createLineChartData());
         lineCard.setExpandAction(o -> {
             Snackbar.make(view, "Expand Action", Snackbar.LENGTH_SHORT).show();
         });
+
+        //TODO add line chart for longest single bathroom duration per day
     }
 
     public BarData createBarChartData()
