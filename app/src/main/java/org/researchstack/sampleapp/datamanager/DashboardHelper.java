@@ -5,6 +5,7 @@ import android.util.Log;
 import android.widget.ArrayAdapter;
 
 import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.Entry;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -152,5 +153,65 @@ public class DashboardHelper {
             nextDayOfMonthMillis += ONE_DAY_IN_MILLIS;
         }
         return new TwoValueDataHolder(dayOfThisMonth, totalDurationPerDay);
+    }
+
+    public HashMap<String,ArrayList> generateBeaconTotalDurationPerDayMap() {
+        TimeZone timeZone = TimeZone.getTimeZone("UTC");
+        Calendar currentDateTime = Calendar.getInstance(timeZone);
+        Log.d(TAG, String.valueOf(currentDateTime.get(Calendar.MONTH)));
+        int totalDaysInMonth = currentDateTime.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+        Calendar startOfThisMonth = mDBHelper.generateStartOfCurrentMonth(currentDateTime); //Set calendar to start of current month
+        long startOfThisMonthMillis = startOfThisMonth.getTimeInMillis();
+
+        ArrayList<String> dayOfThisMonth = new ArrayList<String>();
+        ArrayList<Entry> totalDurationPerDay = new ArrayList<Entry>();
+
+        List<BeaconStatus> beaconStatuses = mDBHelper.getAllBeaconStatus();
+
+        long dayOfMonthMillis = startOfThisMonthMillis;
+        long nextDayOfMonthMillis = dayOfMonthMillis + ONE_DAY_IN_MILLIS;
+
+        for (int day = 0; day < dayOfThisMonth.size(); day++) { //Iterate over days of the month
+
+            dayOfThisMonth.add(day, String.valueOf(day+1));
+
+            for (int i = 0; i < beaconStatuses.size(); i++) {
+
+                BeaconStatus firstStatus = beaconStatuses.get(i);
+
+                if (firstStatus.getDateTimeStamp() > dayOfMonthMillis && firstStatus.getDateTimeStamp() < nextDayOfMonthMillis) {
+
+                    if (firstStatus.isBeaconInRange()) {
+
+                        BeaconStatus secondStatus = beaconStatuses.get(i + 1);
+
+                        if (!secondStatus.isBeaconInRange()) {
+
+                            float episodeDuration = secondStatus.getDateTimeStamp() - firstStatus.getDateTimeStamp();
+
+                            float previousDailyDuration = 0f;
+                            try {
+                                previousDailyDuration = totalDurationPerDay.get(day).getVal();
+                            } catch (NullPointerException e) { }
+
+                            float totalDailyDuration = previousDailyDuration + episodeDuration/1000L/60L; //convert milliseconds to minutes
+                            totalDurationPerDay.set(day, new Entry(totalDailyDuration, day));
+                            //totalDurationPerDay[day] += episodeDailyDuration/1000L/60L; //convert milliseconds to minutes
+
+                        } else {
+                            Log.d(TAG, "Found beacon in range status without subsequent out of range status");
+                            //TODO Quiet error stating that beacon leave range time was not recorded
+                        }
+                    }
+                }
+            }
+            dayOfMonthMillis += ONE_DAY_IN_MILLIS;
+            nextDayOfMonthMillis += ONE_DAY_IN_MILLIS;
+        }
+        HashMap<String, ArrayList> storage = new HashMap<String, ArrayList>();
+        storage.put("totalDurationPerDay", totalDurationPerDay);
+        storage.put("dayOfThisMonth", dayOfThisMonth);
+        return storage;
     }
 }

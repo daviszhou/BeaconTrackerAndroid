@@ -107,6 +107,7 @@ public class DashboardFragment extends Fragment
 
     public LineData createLineChartData()
     {
+        /*
         ArrayList<String> xValues = new ArrayList<>();
         for(int i = 0; i < 12; i++)
         {
@@ -121,6 +122,13 @@ public class DashboardFragment extends Fragment
             int val = (int) (Math.random() * mult) + 1;
             entries.add(new Entry(val, i));
         }
+        */
+
+        mDashboardHelper = new DashboardHelper(getActivity());
+        HashMap<String, ArrayList> frequencyHolder = mDashboardHelper.generateBeaconTotalDurationPerDayMap();
+
+        ArrayList<String> xValues = frequencyHolder.get("dayOfThisMonth");
+        ArrayList<Entry> entries = frequencyHolder.get("totalDurationPerDay");
 
         LineDataSet set = new LineDataSet(entries, "");
         set.setCircleColor(0xFF2196f3);
@@ -133,53 +141,4 @@ public class DashboardFragment extends Fragment
         return new LineData(xValues, set);
     }
 
-    /*
-    public List<PieData> createProgressChartData()
-    {
-        List<PieData> items = new ArrayList<>();
-        for(int i = 0, size = 12; i <= size; i++)
-        {
-            List<Entry> entries = new ArrayList<>();
-            entries.add(new Entry(i, 0)); // Complete
-            entries.add(new Entry(size - i, 1)); // Incomplete
-
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.MONTH, - i);
-
-            String month = calendar.getDisplayName(Calendar.MONTH,
-                    Calendar.SHORT,
-                    Locale.getDefault());
-
-            PieDataSet data = new PieDataSet(entries, month + " '16");
-            data.setDrawValues(false);
-            data.setColors(new int[] {
-                    ThemeUtils.getAccentColor(getContext()), 0xFFe5e5e5
-            });
-
-            String[] labels = new String[] {"Incomplete", "Complete"};
-
-            items.add(new PieData(labels, data));
-        }
-        return items;
-    }
-
-    public PieData createPieChartData()
-    {
-        List<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(50, 0));
-        entries.add(new Entry(25, 1));
-        entries.add(new Entry(12.5f, 2));
-        entries.add(new Entry(12.5f, 3));
-
-        PieDataSet data = new PieDataSet(entries, null);
-        data.setDrawValues(false);
-        data.setColors(new int[] {
-                0xFF673ab7, 0xFF2196f3, 0xFF4caf50, 0xFF009688
-        });
-
-        String[] labels = new String[] {"Blackberry", "Blueberry", "Green apple", "Seaweed"};
-
-        return new PieData(labels, data);
-    }
-    */
 }
