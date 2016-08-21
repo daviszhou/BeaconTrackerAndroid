@@ -67,45 +67,9 @@ public class SampleApplication extends Application
                         R.string.rss_permission_mandatory_notification_desc //Modified to state that notifications are important for core functionality
                 );
 
-        Log.d(TAG, "Check Bluetooth");
-        verifyBluetooth();
-
         Log.d(TAG, "Launch Beacon Monitoring Service");
         Intent intent = new Intent(this, MonitoringService.class);
         startService(intent);
-    }
-
-    //Bluetooth Function
-    private void requestBluetooth(){
-        Intent intentRequestBluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE); //#create new intent that sends user-mediate bluetooth request
-        startActivity(intentRequestBluetooth); //check usage
-    }
-
-    //Bluetooth Function
-    @TargetApi(17)
-    private void verifyBluetooth() {
-        try {
-            if (!BeaconManager.getInstanceForApplication(this).checkAvailability()) { //#check that there is instance of Beacon Manager
-                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter(); //#attaches variable to bluetooth adapter
-                if (!bluetoothAdapter.isEnabled()) {
-                    requestBluetooth(); //#if bluetooth is not enabled, launch requestBluetooth method
-                }
-            }
-        } catch (RuntimeException e) { //#create alert for user if the phone does nto support bluetooth
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Bluetooth LE not available");
-            builder.setMessage("Sorry, this device does not support Bluetooth LE.");
-            builder.setPositiveButton(android.R.string.ok, null);
-            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
-                @Override
-                public void onDismiss(DialogInterface dialog) {;
-                    System.exit(0);
-                }
-
-            });
-            builder.show();
-        }
     }
 
     @Override
