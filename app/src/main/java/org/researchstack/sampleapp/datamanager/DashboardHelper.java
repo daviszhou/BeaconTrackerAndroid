@@ -33,24 +33,24 @@ public class DashboardHelper {
 
         TimeZone timeZone = TimeZone.getTimeZone("UTC");
         Calendar currentDateTime = Calendar.getInstance(timeZone);
-        Log.d(TAG, String.valueOf(currentDateTime.get(Calendar.MONTH)));
+//        Log.d(TAG, "Month is " + String.valueOf(currentDateTime.get(Calendar.MONTH)));
         int totalDaysInMonth = currentDateTime.getActualMaximum(Calendar.DAY_OF_MONTH);
 
         Calendar startOfThisMonth = mDBHelper.generateStartOfCurrentMonth(currentDateTime); //Set calendar to start of current month
         long startOfThisMonthMillis = startOfThisMonth.getTimeInMillis();
-
-        //float[] episodesPerDay = new float[totalDaysInMonth];
-        //float[] dayOfThisMonth = new float[totalDaysInMonth];
 
         ArrayList<String> dayOfThisMonth = new ArrayList<>();
         ArrayList<BarEntry> episodesPerDay = new ArrayList<>();
 
         for (int i=0; i<totalDaysInMonth; i++) {
             dayOfThisMonth.add(i, String.valueOf(i+1));
-            Log.d(TAG, "Date is " + String.valueOf(i+1));
+//            Log.d(TAG, "Date is " + String.valueOf(i+1));
             episodesPerDay.add(new BarEntry(mDBHelper.getFrequency(startOfThisMonthMillis), i));
             startOfThisMonthMillis += ONE_DAY_IN_MILLIS; //add 24 hours
         }
+
+        Log.d(TAG, "episodes dayOfThisMonth has " + dayOfThisMonth.size() + " elements.");
+        Log.d(TAG, "episodesPerDay has " + episodesPerDay.size() + " elements.");
 
         HashMap<String, ArrayList> storage = new HashMap<String, ArrayList>();
         storage.put("episodesPerDay", episodesPerDay);
@@ -61,7 +61,7 @@ public class DashboardHelper {
     public HashMap<String,ArrayList> generateBeaconTotalDurationPerDayMap() {
         TimeZone timeZone = TimeZone.getTimeZone("UTC");
         Calendar currentDateTime = Calendar.getInstance(timeZone);
-        Log.d(TAG, String.valueOf(currentDateTime.get(Calendar.MONTH)));
+//        Log.d(TAG, "Month is " + String.valueOf(currentDateTime.get(Calendar.MONTH)));
         int totalDaysInMonth = currentDateTime.getActualMaximum(Calendar.DAY_OF_MONTH);
 
         Calendar startOfThisMonth = mDBHelper.generateStartOfCurrentMonth(currentDateTime); //Set calendar to start of current month
@@ -75,9 +75,10 @@ public class DashboardHelper {
         long dayOfMonthMillis = startOfThisMonthMillis;
         long nextDayOfMonthMillis = dayOfMonthMillis + ONE_DAY_IN_MILLIS;
 
-        for (int day = 0; day < dayOfThisMonth.size(); day++) { //Iterate over days of the month
+        for (int day = 0; day < totalDaysInMonth; day++) { //Iterate over days of the month
 
             dayOfThisMonth.add(day, String.valueOf(day+1));
+            totalDurationPerDay.add(day, new Entry(0f, day)); //Set initial duration to zero for each day
 
             for (int i = 0; i < beaconStatuses.size(); i++) {
 
@@ -96,7 +97,7 @@ public class DashboardHelper {
                             float previousDailyDuration = 0f;
                             try {
                                 previousDailyDuration = totalDurationPerDay.get(day).getVal();
-                            } catch (NullPointerException e) { }
+                            } catch (IndexOutOfBoundsException e) { }
 
                             float totalDailyDuration = previousDailyDuration + episodeDuration/1000L/60L; //convert milliseconds to minutes
                             totalDurationPerDay.set(day, new Entry(totalDailyDuration, day));
@@ -112,12 +113,17 @@ public class DashboardHelper {
             dayOfMonthMillis += ONE_DAY_IN_MILLIS;
             nextDayOfMonthMillis += ONE_DAY_IN_MILLIS;
         }
+
+
+        Log.d(TAG, "duration dayOfThisMonth has " + dayOfThisMonth.size() + " elements.");
+        Log.d(TAG, "totalDurationPerDay has " + totalDurationPerDay.size() + " elements.");
+
         HashMap<String, ArrayList> storage = new HashMap<String, ArrayList>();
         storage.put("totalDurationPerDay", totalDurationPerDay);
         storage.put("dayOfThisMonth", dayOfThisMonth);
         return storage;
     }
-//
+
 //    public int findBeaconStartDayOfMonth(){
 //        /*
 //        //Run SQL DB Helper Command
