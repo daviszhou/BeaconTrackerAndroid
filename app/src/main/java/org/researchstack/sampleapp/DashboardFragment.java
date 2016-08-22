@@ -41,7 +41,6 @@ public class DashboardFragment extends Fragment
 {
     private View emptyView;
     private DashboardHelper mDashboardHelper;
-    private HashMap<String, ArrayList> mMapHolder;
 
     @Nullable
     @Override
@@ -86,10 +85,10 @@ public class DashboardFragment extends Fragment
         numberFormat.setMaximumFractionDigits(2);
 
         mDashboardHelper = new DashboardHelper(getActivity());
-        HashMap<String, ArrayList> frequencyHolder = mDashboardHelper.generateTimesPerDayMap();
+        HashMap<String, ArrayList> holder = mDashboardHelper.generateTimesPerDayMap();
 
-        ArrayList<String> xVals = frequencyHolder.get("dayOfThisMonth");
-        ArrayList<BarEntry> yVals1 = frequencyHolder.get("episodesPerDay");
+        ArrayList<String> xVals = holder.get("dayOfThisMonth");
+        ArrayList<BarEntry> yVals1 = holder.get("episodesPerDay");
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
         set1.setColor(0xFF2196f3);
@@ -127,10 +126,10 @@ public class DashboardFragment extends Fragment
         */
 
         mDashboardHelper = new DashboardHelper(getActivity());
-        HashMap<String, ArrayList> frequencyHolder = mDashboardHelper.generateBeaconTotalDurationPerDayMap();
+        HashMap<String, ArrayList> holder = mDashboardHelper.generateBeaconTotalDurationPerDayMap();
 
-        ArrayList<String> xValues = frequencyHolder.get("dayOfThisMonth");
-        ArrayList<Entry> entries = frequencyHolder.get("totalDurationPerDay");
+        ArrayList<String> xValues = holder.get("dayOfThisMonth");
+        ArrayList<Entry> entries = holder.get("totalDurationPerDay");
 
         LineDataSet set = new LineDataSet(entries, "");
         set.setCircleColor(0xFF2196f3);

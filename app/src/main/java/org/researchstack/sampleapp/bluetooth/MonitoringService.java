@@ -209,7 +209,7 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
                     long startTime = beaconStatusPrevious.getDateTimeStamp();
                     long endTime = dateTime;
                     if (endTime - startTime > MINIMUM_EPISODE_DURATION) { // Prevents triggering unwanted notifications from walking past beacon
-                        sendNotification(String.valueOf(startTime), String.valueOf(endTime)); //TODO get notification user response and save beacon status based on response
+                        sendNotification(String.valueOf(startTime), String.valueOf(endTime)); //TODO check if notification is incrementing with current return scheme
                     }
                 }
             } catch (NullPointerException e) { }
@@ -223,7 +223,9 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
     }
 
     @Override
-    public void didDetermineStateForRegion(int state, Region region) {    }
+    public void didDetermineStateForRegion(int state, Region region) {
+        //TODO compare didDetermineStateForRegion time delay versus didExitRegion
+    }
 
     public int sendNotification(String startdatetime, String enddatetime) {
 
@@ -304,7 +306,6 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
         try {
             mBeaconManager.updateScanPeriods();
         } catch (RemoteException e) {
-            //create function to alert user
             Log.d(TAG, "Error changing scan frequency");
         }
     }

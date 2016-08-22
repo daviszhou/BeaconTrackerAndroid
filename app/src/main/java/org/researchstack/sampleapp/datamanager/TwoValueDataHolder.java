@@ -3,6 +3,7 @@ package org.researchstack.sampleapp.datamanager;
 /**
  * Created by davis on 7/21/16.
  */
+@Deprecated
 public class TwoValueDataHolder {
     private static Object mFirst;
     private static Object mSecond;

@@ -95,6 +95,7 @@
         <receiver
             android:name=".datamanager.ConfirmationReceiver"
             android:enabled="true"
+            android:exported="false"
         />
 
         <receiver

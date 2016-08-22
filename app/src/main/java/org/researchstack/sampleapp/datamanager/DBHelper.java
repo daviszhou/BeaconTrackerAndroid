@@ -79,7 +79,7 @@ public class DBHelper extends SQLiteOpenHelper {
         // Build query
         Cursor cursor = db.query(TABLE_BEACONSTATUS, //table
                 COLUMNS, //column names
-                " datetimestamp = ?", //seletions
+                " datetimestamp = ?", //selections
                 new String[] { String.valueOf(datetime) }, //selections
                 null, //group by
                 null, //having
@@ -259,10 +259,10 @@ public class DBHelper extends SQLiteOpenHelper {
         int day = calendar.get(Calendar.DAY_OF_MONTH);
         int month = calendar.get(Calendar.MONTH);
 
-        Log.d("DB FUNCTION", String.valueOf(beginTime));
-        Log.d("DB FUNCTION", "DB pull date is " + String.valueOf(day));
-        Log.d("DB FUNCTION", "DB pull month is " + String.valueOf(month));
-        Log.d("DB FUNCTION", String.valueOf(count));
+//        Log.d("DB FUNCTION", String.valueOf(beginTime));
+//        Log.d("DB FUNCTION", "DB pull date is " + String.valueOf(day));
+//        Log.d("DB FUNCTION", "DB pull month is " + String.valueOf(month));
+//        Log.d("DB FUNCTION", String.valueOf(count));
 
         return count;
     }
@@ -289,10 +289,10 @@ public class DBHelper extends SQLiteOpenHelper {
         int day = calendar.get(Calendar.DAY_OF_MONTH);
         int month = calendar.get(Calendar.MONTH);
 
-        Log.d("DB FUNCTION", String.valueOf(beginTime));
-        Log.d("DB FUNCTION", "DB pull date is " + String.valueOf(day));
-        Log.d("DB FUNCTION", "DB pull month is " + String.valueOf(month));
-        Log.d("DB FUNCTION", String.valueOf(count));
+//        Log.d("DB FUNCTION", String.valueOf(beginTime));
+//        Log.d("DB FUNCTION", "DB pull date is " + String.valueOf(day));
+//        Log.d("DB FUNCTION", "DB pull month is " + String.valueOf(month));
+//        Log.d("DB FUNCTION", String.valueOf(count));
 
         return count;
     }
