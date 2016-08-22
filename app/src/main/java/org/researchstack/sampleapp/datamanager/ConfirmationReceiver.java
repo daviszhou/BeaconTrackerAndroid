@@ -18,17 +18,25 @@ public class ConfirmationReceiver extends BroadcastReceiver {
 
         DBHelper dbHelper = new DBHelper(context);
 
-        String beaconDateTime = intent.getStringExtra("beaconDateTime");
+        String startDateTime = intent.getStringExtra("startDateTime");
+        String endDateTime = intent.getStringExtra("endDateTime");
         int notificationId = intent.getIntExtra("notificationId", 0);
-        boolean openListFlag = intent.getBooleanExtra("userInputed", false);
-        Log.d("TAG", "The user pressed " + String.valueOf(openListFlag));
-        if (openListFlag) {
-            BeaconStatus status = dbHelper.getBeaconStatusFromDateTime(Long.parseLong(beaconDateTime));
-            status.markAsUserConfirmed();
-            dbHelper.updateBeaconStatus(status);
+        boolean userConfirmed = intent.getBooleanExtra("userConfirmed", false);
+        Log.d("TAG", "The user pressed " + String.valueOf(userConfirmed) + " on notification " + notificationId);
+        if (userConfirmed) {
+
+            BeaconStatus startStatus = dbHelper.getBeaconStatusFromDateTime(Long.parseLong(startDateTime));
+            startStatus.markAsUserConfirmed();
+            dbHelper.updateBeaconStatus(startStatus);
+
+            BeaconStatus endStatus = dbHelper.getBeaconStatusFromDateTime(Long.parseLong(endDateTime));
+            endStatus.markAsUserConfirmed();
+            dbHelper.updateBeaconStatus(endStatus);
+
         }
 
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         manager.cancel(notificationId);
+
     }
 }
