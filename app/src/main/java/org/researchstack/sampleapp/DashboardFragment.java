@@ -22,11 +22,9 @@ import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
 import org.researchstack.backbone.ui.graph.BarChartCard;
 import org.researchstack.backbone.ui.graph.LineChartCard;
-import org.researchstack.backbone.ui.graph.PieChartCard;
 import org.researchstack.backbone.ui.graph.ProgressChartCard;
 import org.researchstack.backbone.utils.ThemeUtils;
 import org.researchstack.sampleapp.datamanager.DashboardHelper;
-import org.researchstack.sampleapp.datamanager.TwoValueDataHolder;
 import org.researchstack.skin.R;
 
 import java.text.NumberFormat;
@@ -67,6 +65,8 @@ public class DashboardFragment extends Fragment
         barCard.setExpandAction(o -> {
             Snackbar.make(view, "Expand Action", Snackbar.LENGTH_SHORT).show();
         });
+        barCard.getChart().setVisibleXRangeMaximum(16);
+        barCard.getChart().moveViewToX(mDashboardHelper.findBeaconStartDayOfMonth());
 
         LineChartCard lineCard = (LineChartCard) view.findViewById(R.id.dashboard_chart_line);
         lineCard.setTitle("Bathroom Use Total Duration");
@@ -74,6 +74,9 @@ public class DashboardFragment extends Fragment
         lineCard.setExpandAction(o -> {
             Snackbar.make(view, "Expand Action", Snackbar.LENGTH_SHORT).show();
         });
+        lineCard.getChart().getAxisLeft().setAxisMinValue(0f);
+        lineCard.getChart().setVisibleXRangeMaximum(16);
+        lineCard.getChart().moveViewToX(mDashboardHelper.findBeaconStartDayOfMonth());
 
         //TODO add line chart for longest single bathroom duration per day
     }
@@ -108,23 +111,6 @@ public class DashboardFragment extends Fragment
 
     public LineData createLineChartData()
     {
-        /*
-        ArrayList<String> xValues = new ArrayList<>();
-        for(int i = 0; i < 12; i++)
-        {
-            xValues.add(i + "");
-        }
-
-        ArrayList<Entry> entries = new ArrayList<>();
-
-        for(int i = 0; i < 12; i++)
-        {
-            float mult = (5 + 1);
-            int val = (int) (Math.random() * mult) + 1;
-            entries.add(new Entry(val, i));
-        }
-        */
-
         mDashboardHelper = new DashboardHelper(getActivity());
         HashMap<String, ArrayList> holder = mDashboardHelper.generateBeaconTotalDurationPerDayMap();
 
