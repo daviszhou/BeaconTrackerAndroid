@@ -56,11 +56,11 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
         mBeaconManager = org.altbeacon.beacon.BeaconManager.getInstanceForApplication(this);
         mBeaconManager.getBeaconParsers().clear();
         mBeaconManager.getBeaconParsers().add(new BeaconParser("ibeacon")
-                .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
-        mBeaconManager.getBeaconParsers().add(new BeaconParser("eddystone")
+                .setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
+        mBeaconManager.getBeaconParsers().add(new BeaconParser("eddystoneuid")
                 .setBeaconLayout("s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19"));
         mBeaconManager.getBeaconParsers().add(new BeaconParser("altbeacon")
-                .setBeaconLayout("s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19"));
+                .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
 
         Log.d(TAG, "setting up background monitoring for beacons and power saving");
         Region region = new Region("backgroundRegion", null, null, null);
@@ -165,7 +165,7 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
         });
 
         try {
-            mBeaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+            mBeaconManager.startRangingBeaconsInRegion(new Region("rangerid", null, null, null));
         } catch (RemoteException e) {   }
     }
 
@@ -185,9 +185,13 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
     }
 
     @Override
-    public void didEnterRegion(Region arg0) {
+    public void didEnterRegion(Region region) {
 
         Log.d(TAG, "Detected a new beacon.");
+        Log.d(TAG, "Region ID1 is " + region.getId1());
+        Log.d(TAG, "Region ID2 is " + region.getId2());
+        Log.d(TAG, "Region ID3 is " + region.getId3());
+        Log.d(TAG, "Region bluetooth address is " + region.getBluetoothAddress().toString());
 
         setScanFrequency(MEDIUM_SCAN_TIME, MEDIUM_SCAN_INTERVAL);
     }
