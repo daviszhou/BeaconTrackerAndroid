@@ -187,13 +187,15 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
     @Override
     public void didEnterRegion(Region arg0) {
 
-        Log.d(TAG, "did enter region.");
+        Log.d(TAG, "Detected a new beacon.");
 
         setScanFrequency(MEDIUM_SCAN_TIME, MEDIUM_SCAN_INTERVAL);
     }
 
     @Override
     public void didExitRegion(Region region) {
+
+        Log.d(TAG, "Loss detection of a beacon.");
 
         DBHelper dBHelper = new DBHelper(this);
 
