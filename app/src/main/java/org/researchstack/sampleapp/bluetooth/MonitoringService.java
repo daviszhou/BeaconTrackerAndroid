@@ -259,9 +259,9 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
 
         if (android.os.Build.VERSION.SDK_INT > 20) {
             NotificationCompat.Action yesAction =
-                    new NotificationCompat.Action.Builder(R.drawable.ic_check_alt, "Yes", yesPendingIntent).build();
+                    new NotificationCompat.Action.Builder(R.drawable.ic_check_black_24dp, "Yes", yesPendingIntent).build();
             NotificationCompat.Action noAction =
-                    new NotificationCompat.Action.Builder(R.drawable.ic_x_alt, "No", noPendingIntent).build();
+                    new NotificationCompat.Action.Builder(R.drawable.ic_close_black_24dp, "No", noPendingIntent).build();
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                     .setContentTitle("Bathroom Tracker")
@@ -282,8 +282,8 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
                             .setContentText("Were you pooping " + startdatetimestring + " to " + enddatetimestring + "?")
                             .setSmallIcon(R.mipmap.ic_launcher)
                             .setVibrate(new long[]{100, 200, 100, 200})
-                            .addAction(R.drawable.ic_check_alt, "Yes", yesPendingIntent)
-                            .addAction(R.drawable.ic_x_alt, "No", noPendingIntent);
+                            .addAction(R.drawable.ic_check_black_24dp, "Yes", yesPendingIntent)
+                            .addAction(R.drawable.ic_close_black_24dp, "No", noPendingIntent);
             builder.setContentIntent(bodyPendingIntent);
 
             NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
