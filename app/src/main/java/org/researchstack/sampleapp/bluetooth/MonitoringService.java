@@ -55,8 +55,12 @@ public class MonitoringService extends Service implements BeaconConsumer, Bootst
 
         mBeaconManager = org.altbeacon.beacon.BeaconManager.getInstanceForApplication(this);
         mBeaconManager.getBeaconParsers().clear();
-        mBeaconManager.getBeaconParsers().add(new BeaconParser()
-                .setBeaconLayout("s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19")); //Modify for non Eddy Stone Beacons
+        mBeaconManager.getBeaconParsers().add(new BeaconParser("ibeacon")
+                .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
+        mBeaconManager.getBeaconParsers().add(new BeaconParser("eddystone")
+                .setBeaconLayout("s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19"));
+        mBeaconManager.getBeaconParsers().add(new BeaconParser("altbeacon")
+                .setBeaconLayout("s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19"));
 
         Log.d(TAG, "setting up background monitoring for beacons and power saving");
         Region region = new Region("backgroundRegion", null, null, null);
